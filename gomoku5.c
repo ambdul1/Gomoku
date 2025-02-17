@@ -1,14 +1,14 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
+#include <SDL2/SDL_stdinc.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #define TITRE "Mon App"
 #define LARGEUR 800
 #define HAUTEUR 600
-#define GRILLE 12
-#define CELLULE 50
+#define GRILLE 9
+#define CELLULE 70
 
 
 typedef struct {
@@ -21,16 +21,16 @@ typedef struct {
 bool initialize(Game *game);
 void clean(Game *game, int exit_status);
 void tracer_grille(Game *game);
-void dessiner_piece(Game *game, int x, int y, Uint32 color);
-void drawcircle(Game *game, int cx, int cy, int radius, int thickness, SDL_Color color);
+void dessiner_piece(Game *game, int x, int y, int joueur);
+void dessiner_croix(Game *game, int x, int y, Uint32 color);
 
 int main(){
 	Game game;
 	if(initialize(&game)){
 		clean(&game, EXIT_FAILURE);
 	}
-	printf("bien init \n : ");
-	fflush(stdout);
+	/*printf("bien init \n : ");*/
+	/*fflush(stdout);*/
 	int board[GRILLE][GRILLE] = {0};
 	bool isBlackTurn = true;
 	bool running = true;
@@ -54,20 +54,22 @@ int main(){
 				}
 			}
 		}
-		SDL_Color color = {255,0,0,255};
+
+		//Efface l ecran
 		SDL_SetRenderDrawColor(game.renderer, 0,0,0,255);	
 		SDL_RenderClear(game.renderer);
-		SDL_SetRenderDrawColor(game.renderer, 255,255,255,255);
+
+		//Dessine la grille
 		tracer_grille(&game);
-		printf("avant les cercles : \n");
-		fflush(stdout);
+		/*printf("avant les cercles : \n");*/
+		/*fflush(stdout);*/
 
 		for(int i = 0; i < GRILLE; i++){
 			for(int j = 0; j < GRILLE; j++){
 				if(board[i][j] == 1){
-					dessiner_piece(&game, i, j, 0xFF00FFFF);
-				} else if(board[i][j] == 2){
-					dessiner_piece(&game, i, j, 0xFFFFFFFF);
+					dessiner_piece(&game, i, j, 1);
+				} else if(board[i][j] == 2){	
+					dessiner_piece(&game,i, j, 2);	
 				}
 			}
 		}
@@ -106,7 +108,7 @@ bool initialize(Game *game){
 	return false;
 }
 void tracer_grille(Game *game){
-    SDL_SetRenderDrawColor(game->renderer, 0, 255, 0, 255);  // Noir pour la grille
+    SDL_SetRenderDrawColor(game->renderer, 0xF1, 0x00, 0x00, 0xFF);  // Noir pour la grille
 
     // Dessiner les lignes horizontales
     for(int i = 0; i <= GRILLE; i++){
@@ -115,11 +117,28 @@ void tracer_grille(Game *game){
     }
 }
 
-void dessiner_piece(Game *game, int x, int y, Uint32 color){
+void dessiner_croix(Game *game, int x, int y, Uint32 color){
 	int cx = x * CELLULE + CELLULE / 2;
 	int cy = y * CELLULE + CELLULE / 2;
-	int radius = CELLULE / 3;
-	filledCircleColor(game->renderer, cx, cy, radius, color);
-}
+	int taille_croix = CELLULE / 3;
+	int epaisseur = 3;
 
+	// Premiere diagonale
+	thickLineColor(game->renderer, cx - taille_croix, cy - taille_croix, cx + taille_croix, cy + taille_croix, epaisseur, color);	
+
+	// Seconde diagonale
+	thickLineColor(game->renderer, cx - taille_croix, cy + taille_croix, cx + taille_croix, cy - taille_croix, epaisseur,color);
+}
+void dessiner_piece(Game *game, int x, int y, int joueur){
+	if(joueur == 1){
+		dessiner_croix(game, x, y, 0xFF0000FF);//croix rouge 
+	}else if(joueur == 2){	
+		int cx = x * CELLULE + CELLULE / 2;
+		int cy = y * CELLULE + CELLULE / 2;
+		int radius = CELLULE / 3;
+		int radius_interne = radius - 4;
+		filledCircleColor(game->renderer, cx, cy, radius, 0xFFFF0000);// bleu
+		filledCircleColor(game->renderer, cx, cy, radius_interne, 0xFF000000);// noir  
+	}
+}
 
