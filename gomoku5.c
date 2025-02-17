@@ -1,15 +1,7 @@
-#include <SDL2/SDL_error.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_timer.h>
-#include <SDL2/SDL_video.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
-#include <math.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define TITRE "Mon App"
@@ -24,9 +16,6 @@ typedef struct {
 	SDL_Renderer *renderer;
 }Game;
 
-typedef struct {
-	int board[GRILLE][CELLULE];
-}Grille;
 
 // Fonction pour Initialiser
 bool initialize(Game *game);
@@ -39,7 +28,9 @@ int main(){
 	Game game;
 	if(initialize(&game)){
 		clean(&game, EXIT_FAILURE);
-	}	
+	}
+	printf("bien init \n : ");
+	fflush(stdout);
 	int board[GRILLE][GRILLE] = {0};
 	bool isBlackTurn = true;
 	bool running = true;
@@ -55,8 +46,8 @@ int main(){
 				}
 
 			}else if(event.type == SDL_MOUSEBUTTONDOWN){
-				int x = event.button.x;
-				int y = event.button.y;
+				int x = event.button.x / CELLULE;
+				int y = event.button.y / CELLULE;
 				if(x < GRILLE && y < GRILLE && board[x][y] == 0){
 					board[x][y] = isBlackTurn ? 1 : 2;
 					isBlackTurn = !isBlackTurn;
@@ -68,8 +59,19 @@ int main(){
 		SDL_RenderClear(game.renderer);
 		SDL_SetRenderDrawColor(game.renderer, 255,255,255,255);
 		tracer_grille(&game);
-		/*thickCircleColor(game.renderer, 100, 300, 20 - CELLULE * 5, 0xFFFF0000);*/
-		drawcircle(&game, 100, 100, 30, 2, color);
+		printf("avant les cercles : \n");
+		fflush(stdout);
+
+		for(int i = 0; i < GRILLE; i++){
+			for(int j = 0; j < GRILLE; j++){
+				if(board[i][j] == 1){
+					dessiner_piece(&game, i, j, 0xFF00FFFF);
+				} else if(board[i][j] == 2){
+					dessiner_piece(&game, i, j, 0xFFFFFFFF);
+				}
+			}
+		}
+
 		SDL_RenderPresent(game.renderer);
 	
 	}	
@@ -104,7 +106,7 @@ bool initialize(Game *game){
 	return false;
 }
 void tracer_grille(Game *game){
-    SDL_SetRenderDrawColor(game->renderer, 0, 255, 0, 0);  // Noir pour la grille
+    SDL_SetRenderDrawColor(game->renderer, 0, 255, 0, 255);  // Noir pour la grille
 
     // Dessiner les lignes horizontales
     for(int i = 0; i <= GRILLE; i++){
